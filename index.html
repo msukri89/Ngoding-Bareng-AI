@@ -294,17 +294,15 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    // Menggunakan Llama-3-70b-chat-hf karena ini yang terbaik di Together AI saat ini
-                    // untuk instruksi rumit seperti mengurai teks base64 panjang.
-                    model="meta-llama/Llama-3.3-70B-Instruct-Turbo", 
- 
+                    // Sudah diperbaiki: memakai titik dua (:) dan memakai model Vision
+                    model: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo", 
                     messages: chatHistory,
-                    temperature: 0.5 // Menurunkan suhu agar respon lebih fokus dan akurat
+                    temperature: 0.5
                 })
             });
 
             if (!response.ok) {
-                throw new Error('Gagal menghubungi API. Pastikan API Key benar dan Anda memiliki kuota.');
+                throw new Error('Gagal menghubungi API. Pastikan API Key benar.');
             }
 
             const data = await response.json();
@@ -314,7 +312,8 @@
             chatHistory.push({ role: "assistant", content: aiResponse });
 
         } catch (error) {
-            appendMessage('ai', `Error: ${error.message}. Pastikan model 'meta-llama/Llama-3-70b-chat-hf' tersedia di akun Together AI Anda.`);
+            // Pesan error sudah disesuaikan agar tidak membingungkan
+            appendMessage('ai', `Error: ${error.message}. Silakan periksa kembali koneksi atau API Key Anda.`);
         } finally {
             sendBtn.disabled = false;
             sendBtn.innerText = 'Kirim';
