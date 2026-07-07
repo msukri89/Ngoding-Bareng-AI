@@ -296,7 +296,8 @@
                 body: JSON.stringify({
                     // Menggunakan Llama-3-70b-chat-hf karena ini yang terbaik di Together AI saat ini
                     // untuk instruksi rumit seperti mengurai teks base64 panjang.
-                    model: "meta-llama/Llama-3-70b-chat-hf", 
+                    model: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo", 
+ 
                     messages: chatHistory,
                     temperature: 0.5 // Menurunkan suhu agar respon lebih fokus dan akurat
                 })
