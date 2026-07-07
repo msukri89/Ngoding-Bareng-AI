@@ -3,74 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Coding Assistant</title>
+    <title>AI Coding Assistant v2</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
-        /* Desain bergaya iOS */
+        /* Desain bergaya iOS Utuh */
+        :root {
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-grey: #c7c7cc;
+            --ios-text-bg: #ffffff;
+            --ios-ai-msg: #e5e5ea;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f2f2f7;
+            background-color: var(--ios-bg);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
         }
+
         .app-container {
             width: 100%;
             max-width: 600px;
-            background: #ffffff;
+            background: var(--ios-text-bg);
             height: 100vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+
         .header {
-            padding: 15px 20px;
+            padding: 12px 15px;
             background: #f8f8f8;
             border-bottom: 1px solid #e5e5ea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
+
         .api-input {
             width: 100%;
-            padding: 10px 12px;
+            padding: 8px 12px;
             border-radius: 10px;
-            border: 1px solid #c7c7cc;
-            font-size: 15px;
+            border: 1px solid var(--ios-grey);
+            font-size: 14px;
             box-sizing: border-box;
             outline: none;
+            background-color: var(--ios-bg);
         }
+
         .api-input:focus {
-            border-color: #007aff;
+            border-color: var(--ios-blue);
         }
+
         .chat-container {
             flex: 1;
             padding: 15px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+            scroll-behavior: smooth;
         }
+
         .message {
             margin-bottom: 15px;
-            padding: 12px 16px;
-            border-radius: 20px;
-            max-width: 85%;
+            padding: 10px 16px;
+            border-radius: 18px;
+            max-width: 80%;
             line-height: 1.4;
-            font-size: 16px;
+            font-size: 15px;
             word-wrap: break-word;
+            position: relative;
         }
+
         .user-message {
-            background-color: #007aff;
+            background-color: var(--ios-blue);
             color: #ffffff;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
+
         .ai-message {
-            background-color: #e5e5ea;
+            background-color: var(--ios-ai-msg);
             color: #000000;
             align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
+
         pre {
             background-color: #1c1c1e;
             color: #f2f2f7;
@@ -78,37 +104,71 @@
             border-radius: 8px;
             overflow-x: auto;
             font-size: 13px;
+            margin: 10px 0;
         }
+
         code {
             font-family: monospace;
         }
+
         .input-area {
-            padding: 12px 15px;
+            padding: 10px 15px;
             background: #f8f8f8;
             border-top: 1px solid #e5e5ea;
             display: flex;
             gap: 10px;
             align-items: center;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
         }
+
+        /* Styling Upload Gambar ala iOS */
+        .upload-btn {
+            background: none;
+            border: none;
+            color: var(--ios-blue);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+        }
+
         .chat-input {
             flex: 1;
             padding: 10px 15px;
             border-radius: 20px;
-            border: 1px solid #c7c7cc;
+            border: 1px solid var(--ios-grey);
             font-size: 16px;
             outline: none;
+            background-color: var(--ios-bg);
         }
+
         .send-btn {
             background: none;
             border: none;
-            color: #007aff;
+            color: var(--ios-blue);
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
             padding: 5px 10px;
         }
+
         .send-btn:disabled {
-            color: #c7c7cc;
+            color: var(--ios-grey);
+        }
+
+        #imagePreview {
+            display: none;
+            max-width: 50px;
+            max-height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--ios-blue);
         }
     </style>
 </head>
@@ -120,65 +180,111 @@
     </div>
     
     <div class="chat-container" id="chatBox">
-        <div class="message ai-message">Halo! Masukkan API Key Anda di atas, lalu ketikkan ide aplikasi yang ingin Anda buat. Saya akan memandu Anda secara utuh.</div>
+        <div class="message ai-message">
+            Halo! Saya asisten coding PWA Anda.
+            <br><br>
+            <b>Panduan untuk Anda (Bukan Programmer):</b>
+            <ol>
+                <li>Tempel API Key Together.ai Anda di kolom atas.</li>
+                <li>Ceritakan ide aplikasi Anda dengan bahasa Indonesia biasa.</li>
+                <li>Jika ada kode yang saya berikan, saya akan memberikan **kode secara utuh**. Anda tinggal copy-paste semuanya.</li>
+                <li>Jika ada error, screenshot layar error Anda dan upload menggunakan tombol **(+)** di bawah.</li>
+            </ol>
+        </div>
     </div>
     
     <div class="input-area">
-        <input type="text" id="userInput" class="chat-input" placeholder="Pesan..." onkeypress="handleKeyPress(event)">
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage()">
+        <button class="upload-btn" onclick="document.getElementById('imageInput').click()">+</button>
+        <img id="imagePreview" alt="Preview">
+        <input type="text" id="userInput" class="chat-input" placeholder="Tulis pesan atau ide..." onkeypress="handleKeyPress(event)">
         <button id="sendBtn" class="send-btn" onclick="sendMessage()">Kirim</button>
     </div>
 </div>
 
 <script>
-    // System prompt untuk mengatur perilaku AI sesuai permintaan Anda
-    const SYSTEM_PROMPT = `Anda adalah asisten AI ahli pembuat aplikasi. Pengguna Anda BUKAN programmer dan tidak biasa koding. 
-1. Pandu pengguna step-by-step secara sangat detail.
-2. Saat memberikan, mengubah, atau menambah kode, BERIKAN KODE SECARA UTUH agar pengguna tinggal copy-paste.
-3. KECUALI perubahannya sangat mudah atau minor, barulah Anda boleh memandu mengubahnya secara parsial pada baris yang perlu diubah saja.
-4. Gunakan bahasa Indonesia yang mudah dipahami.`;
+    const SYSTEM_PROMPT = `Anda adalah asisten AI ahli pembuat aplikasi untuk pengguna NON-programmer. 
+1. Pandu pengguna step-by-step secara sangat detail dan sabar.
+2. Saat memberikan, mengubah, atau menambah kode, BERIKAN KODE SECARA UTUH agar pengguna tinggal copy-paste. KECUALI perubahannya sangat minor (misalnya hanya mengubah satu kata), barulah Anda boleh memandu mengubahnya secara parsial.
+3. Gunakan bahasa Indonesia yang mudah dipahami, hindari jargon teknis jika memungkinkan.
+4. JIKA pengguna mengirimkan gambar (yang akan Anda terima dalam format teks Base64 panjang), fokuslah untuk MENGANALISA ERROR DARI GAMBAR TERSEBUT. Perbaiki kode berdasarkan error visual itu dan jelaskan letak kesalahannya secara utuh.`;
 
-    let chatHistory = [
-        { role: "system", content: SYSTEM_PROMPT }
-    ];
+    let chatHistory = [{ role: "system", content: SYSTEM_PROMPT }];
+    let currentImageBase64 = null; // Menyimpan gambar yang dipilih
 
     function handleKeyPress(event) {
-        if (event.key === 'Enter') {
-            sendMessage();
-        }
+        if (event.key === 'Enter') { sendMessage(); }
     }
 
-    function appendMessage(sender, text) {
+    function appendMessage(sender, text, isImage = false) {
         const chatBox = document.getElementById('chatBox');
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}-message`;
         
-        // Membungkus blok kode agar rapi jika AI mengirimkan kode
-        const formattedText = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-        msgDiv.innerHTML = formattedText;
+        if (isImage) {
+            // Tampilkan thumbnail gambar di chat
+            msgDiv.innerHTML = `<img src="${text}" style="max-width: 100%; border-radius: 12px; margin-top: 5px;" alt="User Uploaded Error">`;
+        } else {
+            // Membungkus blok kode agar rapi
+            const formattedText = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            msgDiv.innerHTML = formattedText;
+        }
         
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    // Fungsi Preview Gambar
+    function previewImage() {
+        const fileInput = document.getElementById('imageInput');
+        const preview = document.getElementById('imagePreview');
+        
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                currentImageBase64 = e.target.result; // Simpan Base64 untuk dikirim
+                appendMessage('user', e.target.result, true); // Tampilkan gambar di chat
+            }
+            
+            reader.readAsDataURL(fileInput.files[0]); // Mengonversi menjadi Base64
+        }
+    }
+
     async function sendMessage() {
         const apiKey = document.getElementById('apiKey').value.trim();
-        const userInput = document.getElementById('userInput').value.trim();
+        let userInput = document.getElementById('userInput').value.trim();
         const sendBtn = document.getElementById('sendBtn');
+        const fileInput = document.getElementById('imageInput');
+        const preview = document.getElementById('imagePreview');
 
-        if (!apiKey) {
-            alert('Harap masukkan API Key Together.ai terlebih dahulu di kolom atas.');
-            return;
+        if (!apiKey) { alert('Harap masukkan API Key terlebih dahulu.'); return; }
+        if (!userInput && !currentImageBase64) return; // Tidak ada input
+
+        // Menyiapkan konten pesan yang akan dikirim
+        let contentToSend = userInput;
+        if (currentImageBase64) {
+            // Kita mengirimkan Base64 sebagai bagian dari prompt teks
+            contentToSend = `[DIKIRIM GAMBAR ERROR - SILAKAN ANALISA JIKA ADA]: ${userInput} \n\n(Representasi Visual Kode/Error dalam Base64, harap diurai: ${currentImageBase64})`;
+            if (!userInput) userInput = "Analisis error dari gambar ini."; // Teks default jika hanya upload gambar
         }
-        if (!userInput) return;
 
-        // Tampilkan pesan pengguna
-        appendMessage('user', userInput);
+        // Tampilkan pesan teks pengguna di chat
+        if (userInput) appendMessage('user', userInput);
+
+        // Reset Input Area
         document.getElementById('userInput').value = '';
+        currentImageBase64 = null;
+        preview.style.display = 'none';
+        fileInput.value = ''; // Reset file input
+
         sendBtn.disabled = true;
         sendBtn.innerText = '...';
 
         // Simpan ke history
-        chatHistory.push({ role: "user", content: userInput });
+        chatHistory.push({ role: "user", content: contentToSend });
 
         try {
             const response = await fetch('https://api.together.xyz/v1/chat/completions', {
@@ -188,14 +294,16 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: "meta-llama/Llama-3-70b-chat-hf", // Anda bisa mengubah model di sini jika perlu
+                    // Menggunakan Llama-3-70b-chat-hf karena ini yang terbaik di Together AI saat ini
+                    // untuk instruksi rumit seperti mengurai teks base64 panjang.
+                    model: "meta-llama/Llama-3-70b-chat-hf", 
                     messages: chatHistory,
-                    temperature: 0.7
+                    temperature: 0.5 // Menurunkan suhu agar respon lebih fokus dan akurat
                 })
             });
 
             if (!response.ok) {
-                throw new Error('Gagal menghubungi API. Pastikan API Key benar.');
+                throw new Error('Gagal menghubungi API. Pastikan API Key benar dan Anda memiliki kuota.');
             }
 
             const data = await response.json();
@@ -205,14 +313,13 @@
             chatHistory.push({ role: "assistant", content: aiResponse });
 
         } catch (error) {
-            appendMessage('ai', `Error: ${error.message}`);
+            appendMessage('ai', `Error: ${error.message}. Pastikan model 'meta-llama/Llama-3-70b-chat-hf' tersedia di akun Together AI Anda.`);
         } finally {
             sendBtn.disabled = false;
             sendBtn.innerText = 'Kirim';
         }
     }
 
-    // Registrasi Service Worker untuk PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').catch(err => {
