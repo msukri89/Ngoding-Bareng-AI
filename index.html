@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Coding Assistant v3</title>
+    <title>AI Coding Assistant v4</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -109,19 +109,6 @@
             bottom: 0;
             z-index: 100;
         }
-        .upload-btn {
-            background: none;
-            border: none;
-            color: var(--ios-blue);
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-        }
         .chat-input {
             flex: 1;
             padding: 10px 15px;
@@ -143,14 +130,6 @@
         .send-btn:disabled {
             color: var(--ios-grey);
         }
-        #imagePreview {
-            display: none;
-            max-width: 50px;
-            max-height: 50px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 2px solid var(--ios-blue);
-        }
     </style>
 </head>
 <body>
@@ -162,92 +141,50 @@
     
     <div class="chat-container" id="chatBox">
         <div class="message ai-message">
-            Sistem diperbarui ke v3 (Support Vision API Lanjutan).<br><br>
-            Silakan kirimkan ide aplikasi presensi Anda atau upload gambar error jika ada kendala.
+            Sistem siap dengan model <b>Meta Llama 3.3 70B</b>!<br><br>
+            Silakan kirimkan konsep aplikasi presensi guru berbasis PWA dan Spreadsheet yang ingin Anda buat. Jika ada error kode nanti, cukup copy-paste teks errornya ke sini.
         </div>
     </div>
     
     <div class="input-area">
-        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage()">
-        <button class="upload-btn" onclick="document.getElementById('imageInput').click()">+</button>
-        <img id="imagePreview" alt="Preview">
         <input type="text" id="userInput" class="chat-input" placeholder="Tulis pesan..." onkeypress="handleKeyPress(event)">
         <button id="sendBtn" class="send-btn" onclick="sendMessage()">Kirim</button>
     </div>
 </div>
 
 <script>
-    const SYSTEM_PROMPT = `Anda adalah asisten AI ahli pembuat aplikasi untuk pengguna NON-programmer. Berikan KODE SECARA UTUH agar pengguna tinggal copy-paste. Gunakan bahasa Indonesia. Jika diberi gambar, periksa error pada gambar tersebut.`;
+    const SYSTEM_PROMPT = `Anda adalah asisten AI ahli pembuat aplikasi untuk pengguna NON-programmer. Berikan KODE SECARA UTUH agar pengguna tinggal copy-paste. Gunakan bahasa Indonesia yang mudah dipahami. Jika pengguna memberikan teks error, analisa dan perbaiki kodenya secara detail.`;
 
     let chatHistory = [{ role: "system", content: SYSTEM_PROMPT }];
-    let currentImageBase64 = null;
 
     function handleKeyPress(event) {
         if (event.key === 'Enter') { sendMessage(); }
     }
 
-    function appendMessage(sender, text, isImage = false) {
+    function appendMessage(sender, text) {
         const chatBox = document.getElementById('chatBox');
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}-message`;
         
-        if (isImage) {
-            msgDiv.innerHTML = `<img src="${text}" style="max-width: 100%; border-radius: 12px; margin-top: 5px;" alt="Upload">`;
-        } else {
-            const formattedText = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-            msgDiv.innerHTML = formattedText;
-        }
+        const formattedText = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+        msgDiv.innerHTML = formattedText;
         
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function previewImage() {
-        const fileInput = document.getElementById('imageInput');
-        const preview = document.getElementById('imagePreview');
-        if (fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                currentImageBase64 = e.target.result; 
-                appendMessage('user', e.target.result, true); 
-            }
-            reader.readAsDataURL(fileInput.files[0]);
-        }
     }
 
     async function sendMessage() {
         const apiKey = document.getElementById('apiKey').value.trim();
         let userInput = document.getElementById('userInput').value.trim();
         const sendBtn = document.getElementById('sendBtn');
-        const fileInput = document.getElementById('imageInput');
-        const preview = document.getElementById('imagePreview');
 
         if (!apiKey) { alert('Harap masukkan API Key terlebih dahulu.'); return; }
-        if (!userInput && !currentImageBase64) return;
+        if (!userInput) return;
 
-        // Tampilkan pesan teks pengguna di layar
-        if (userInput) appendMessage('user', userInput);
+        appendMessage('user', userInput);
+        chatHistory.push({ role: "user", content: userInput });
 
-        // Format pesan sesuai standar API Llama Vision
-        let messageContent;
-        if (currentImageBase64) {
-            messageContent = [
-                { type: "text", text: userInput || "Tolong analisa gambar ini." },
-                { type: "image_url", image_url: { url: currentImageBase64 } }
-            ];
-        } else {
-            messageContent = userInput;
-        }
-
-        chatHistory.push({ role: "user", content: messageContent });
-
-        // Reset UI
         document.getElementById('userInput').value = '';
-        currentImageBase64 = null;
-        preview.style.display = 'none';
-        fileInput.value = '';
         sendBtn.disabled = true;
         sendBtn.innerText = '...';
 
@@ -259,16 +196,15 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo", 
+                    // Menggunakan model teks tercanggih yang 100% Serverless
+                    model: "meta-llama/Llama-3.3-70B-Instruct-Turbo", 
                     messages: chatHistory,
                     temperature: 0.5
                 })
             });
 
-            // Parse response dari server terlebih dahulu
             const data = await response.json();
 
-            // Tangkap pesan error spesifik jika gagal
             if (!response.ok) {
                 const serverError = data.error ? (data.error.message || JSON.stringify(data.error)) : 'Unknown Error';
                 throw new Error(`Ditolak Server: ${serverError}`);
