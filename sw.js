@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-coder-v1';
+const CACHE_NAME = 'ai-coder-v2';
 const urlsToCache = [
   './',
   './index.html',
